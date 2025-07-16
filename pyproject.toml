@@ -1,0 +1,31 @@
+[project]
+name = "dllab"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Deepak Dantagani",email = "DDANTAGANI+hubg@hubgroup.com"}
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "torch (>=2.7.1,<3.0.0)",
+    "transformers (>=4.53.2,<5.0.0)",
+    "datasets (>=4.0.0,<5.0.0)",
+    "accelerate (>=1.8.1,<2.0.0)",
+    "peft (>=0.16.0,<0.17.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+ruff = "^0.12.3"
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
+pre-commit = "^4.2.0"
+jupyter = "^1.1.1"
+jupytext = "^1.17.2"
+
