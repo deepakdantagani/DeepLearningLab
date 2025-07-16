@@ -28,4 +28,3 @@ pytest-cov = "^6.2.1"
 pre-commit = "^4.2.0"
 jupyter = "^1.1.1"
 jupytext = "^1.17.2"
-
