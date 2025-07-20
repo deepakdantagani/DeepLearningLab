@@ -2,8 +2,8 @@ import torch
 
 # Example tensor: each row is a batch, each column is a top-k value
 kth_vals = torch.tensor(
-    [[5, 4, 3], [8, 7, 6]]  # batch 0: top-3 values  # batch 1: top-3 values
-)
+    [[5, 4, 3], [8, 7, 6]]
+)  # batch 0: top-3 values  # batch 1: top-3 values
 
 print("kth_vals:")
 print(kth_vals)

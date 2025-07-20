@@ -48,7 +48,7 @@ print("indices:\n", indices)
 
 **Output:**
 
-```
+```python
 sorted_x:
  tensor([[1, 2, 3],
          [7, 8, 9]])
