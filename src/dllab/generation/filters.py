@@ -15,8 +15,8 @@ def top_k_top_p_filtering(
     filter_value: float = FILTER_VALUE,
 ) -> Tensor:
     if top_k > 0:
-        k_values, _ = torch.topk(logits, top_k, dim=-1)
-        condition = logits < k_values[..., -1, None]
-        logits = torch.where(condition, filter_value, logits)
+        k_values, _ = torch.topk(logits, top_k)  # [b * top_k]
+        condition = logits < k_values[..., -1, None]  # [b, 1]
+        logits = torch.where(condition, filter_value, logits)  # [b*v]
 
     return logits
