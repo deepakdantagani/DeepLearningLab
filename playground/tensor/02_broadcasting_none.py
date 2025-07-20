@@ -1,8 +1,12 @@
+"""Demonstration of broadcasting with None dimension in PyTorch tensors."""
+
 import torch
 
-batch_size = 1024
-vocab_size = 50000
-logits = torch.randn(batch_size, vocab_size)  # shape [1024, 50000]
+BATCH_SIZE = 1024
+VOCAB_SIZE = 50000
+logits = torch.randn(
+    BATCH_SIZE, VOCAB_SIZE
+)  # shape [1024, 50000]  # cspell:ignore randn
 
 top_k = 10
 kth_vals, _ = torch.topk(logits, top_k, dim=-1)
