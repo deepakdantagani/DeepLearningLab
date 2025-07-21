@@ -29,6 +29,19 @@ A collection of interactive examples and tutorials for understanding PyTorch ope
 
 **Run:** `python 02_argmax.py`
 
+### 3. [Multinomial Sampling](03_multinomial.py) | [Documentation](03_multinomial.md)
+
+**`torch.multinomial`** - Samples from probability distributions for stochastic selection.
+
+**Key Concepts:**
+
+- Temperature sampling for text generation
+- Batch processing with multinomial
+- Replacement vs non-replacement sampling
+- Comparison with greedy (argmax) selection
+
+**Run:** `python 03_multinomial.py`
+
 ## Common Use Cases in Your Codebase
 
 These operations are frequently used in your generation pipeline:
@@ -45,6 +58,12 @@ These operations are frequently used in your generation pipeline:
 - **Classification**: Converting logits to predictions
 - **Attention**: Finding attended positions
 
+### Multinomial (`multinomial`)
+
+- **Temperature sampling**: Controlling randomness in text generation
+- **Stochastic selection**: Probabilistic token selection
+- **Batch generation**: Efficient sampling for multiple sequences
+
 ## Running Examples
 
 ```bash
@@ -53,9 +72,11 @@ cd playground/PyTorch
 # Run all examples
 python 01_scatter_.py
 python 02_argmax.py
+python 03_multinomial.py
 
 # Or run individual functions
 python -c "from 01_scatter_ import basic_scatter_example; basic_scatter_example()"
+python -c "from 03_multinomial import temperature_sampling_example; temperature_sampling_example()"
 ```
 
 ## Contributing
@@ -71,10 +92,12 @@ To add new examples:
 
 1. Start with **scatter_** to understand tensor manipulation
 2. Move to **argmax** for classification and selection operations
-3. Combine both for advanced generation techniques
+3. Learn **multinomial** for probabilistic sampling and text generation
+4. Combine all three for advanced generation techniques
 
 ## Related Files
 
 - `src/dllab/generation/filters.py` - Uses `scatter_` for top-p filtering
+- `src/dllab/generation/strategies.py` - Uses `multinomial` for temperature sampling
 - `src/dllab/generation/base.py` - Abstract interfaces for generation
 - `playground/tensor/` - Additional tensor operation examples
