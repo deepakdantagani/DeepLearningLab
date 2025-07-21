@@ -1,19 +1,23 @@
 # Decoding Strategies in Language Models
 
 ## Table of Contents
+
 1. [Top-k Sampling](#top-k-sampling)
 2. [Top-p (Nucleus) Sampling](#top-p-nucleus-sampling)
 3. [Numeric Examples](#numeric-examples)
 4. [Comparison: Top-k vs Top-p](#comparison-top-k-vs-top-p)
 5. [Advanced Decoding Strategies Comparison](#advanced-decoding-strategies-comparison)
-6. [FAQ](#faq)
+6. [Implementation Details](#implementation-details)
+7. [FAQ](#faq)
 
 ---
 
 ## Top-k Sampling
+
 Top-k sampling restricts the token selection to the **top k most likely tokens**, then samples from that set using softmax.
 
 **Algorithm:**
+
 1. Keep top-k tokens only:
    $$
    z_i^{(k)} = \begin{cases}
@@ -33,9 +37,11 @@ Top-k sampling restricts the token selection to the **top k most likely tokens**
 ---
 
 ## Top-p (Nucleus) Sampling
+
 Top-p (nucleus) sampling chooses the **smallest set of tokens** whose cumulative probability reaches or exceeds $p$, then samples from that set.
 
 **Algorithm:**
+
 1. Softmax the logits:
    $$
    p_i = \frac{\exp(z_i)}{\sum_j \exp(z_j)}
@@ -55,6 +61,7 @@ Top-p (nucleus) sampling chooses the **smallest set of tokens** whose cumulative
 ## Numeric Examples
 
 ### Top-p Example (p = 0.90)
+
 | Token | $p_i$ | Cumulative |
 |-------|-------|------------|
 | the   | 0.55  | 0.55       |
@@ -72,7 +79,9 @@ Top-p (nucleus) sampling chooses the **smallest set of tokens** whose cumulative
 - Token is sampled from this set.
 
 ### Top-k Example (k = 3)
+
 Assume vocab = 6 tokens, logits:
+
 | Token | Logit $z_i$ |
 |-------|-------------|
 | the   | 4.2         |
@@ -122,22 +131,71 @@ Assume vocab = 6 tokens, logits:
 
 ---
 
+## Implementation Details
+
+### PyTorch Implementation
+
+The filtering operations can be efficiently implemented using PyTorch's `scatter_` operation:
+
+```python
+def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float("inf")):
+    """
+    Apply top-k and top-p filtering to logits.
+    """
+    if top_k > 0:
+        # Top-k filtering
+        k_values, _ = torch.topk(logits, top_k)
+        condition = logits < k_values[..., -1, None]
+        logits = torch.where(condition, filter_value, logits)
+
+    if 0.0 < top_p < 1.0:
+        # Top-p filtering
+        sorted_logits, sorted_indices = torch.sort(logits, dim=-1, descending=True)
+        probs = torch.softmax(logits, dim=-1)
+        cumulative_probs = probs.cumsum(dim=-1)
+
+        # Remove tokens with cumulative probability above threshold
+        mask = cumulative_probs > top_p
+        mask[..., 1:] = mask[..., :-1].clone()
+        sorted_logits[mask] = filter_value
+
+        # Restore original ordering
+        logits.scatter_(dim=-1, index=sorted_indices, src=sorted_logits)
+
+    return logits
+```
+
+### Key Implementation Points
+
+1. **Efficient Filtering**: Use `torch.topk()` for top-k and `torch.sort()` for top-p
+2. **In-place Operations**: `scatter_` modifies tensors in-place for memory efficiency
+3. **Batch Processing**: Operations work on batched inputs `[batch_size, vocab_size]`
+4. **Filter Value**: Use `-float("inf")` to ensure zero probability after softmax
+
+---
+
 ## FAQ
 
 **Q: Is Greedy the same as Top-k?**
+
 - Greedy is Top-k with k=1 — it always picks the max token deterministically.
 
 **Q: Can Top-k ever pick the max token?**
+
 - Yes. The top token is included in the set. It has the highest probability, but not guaranteed to be picked (unless k=1).
 
 **Q: How is Top-p different from Top-k?**
+
 - Top-k selects a fixed number of tokens; Top-p selects a variable number based on cumulative probability. Top-p adapts to how confident the model is.
 
 **Q: Does Top-p sample from full vocab?**
+
 - No — only from the nucleus set (a subset). Multinomial sampling samples from full vocab. Top-p trims the low-probability tail.
 
 **Q: Is Top-p better than Top-k?**
+
 - Often yes — because it adapts. When the model is confident (sharp probs), it keeps few tokens. When uncertain (flat probs), it explores more.
 
 **Q: Can both methods pick wrong tokens?**
+
 - Yes — sampling introduces randomness. Lower probability ≠ zero probability.
