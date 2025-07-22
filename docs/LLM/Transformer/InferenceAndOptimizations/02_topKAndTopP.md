@@ -199,3 +199,105 @@ def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float("inf")
 **Q: Can both methods pick wrong tokens?**
 
 - Yes — sampling introduces randomness. Lower probability ≠ zero probability.
+
+---
+
+## Time and Space Complexity
+
+### Time Complexity
+
+**Per Generation Step:**
+
+**Top-k Filtering:**
+
+- **Top-k operation**: $O(V \log k)$ where $V$ is vocabulary size, $k$ is top-k parameter
+- **Masking operation**: $O(V)$ for applying filter
+- **Overall top-k**: $O(V \log k + V) = O(V \log k)$
+
+**Top-p (Nucleus) Filtering:**
+
+- **Sorting logits**: $O(V \log V)$ for sorting vocabulary logits
+- **Softmax computation**: $O(V)$ for probability calculation
+- **Cumulative sum**: $O(V)$ for cumulative probability
+- **Masking and restoration**: $O(V)$ for applying and restoring order
+- **Overall top-p**: $O(V \log V + V + V + V) = O(V \log V)$
+
+**Combined (Top-k + Top-p):**
+
+- **Sequential application**: $O(V \log k + V \log V) = O(V \log V)$ (dominated by sorting)
+
+**Full Generation:**
+
+- **Total complexity**: $O(L \cdot V \log V)$ where $L$ is generation length
+- **With model inference**: $O(L \cdot (S \cdot H^2 + V \log V))$ where $S$ is sequence length, $H$ is hidden size
+- **Worst case**: $O(L \cdot V \log V)$ when filtering dominates
+- **Best case**: $O(L \cdot S \cdot H^2)$ when model inference dominates
+
+### Space Complexity
+
+**Memory Usage:**
+
+- **Logits storage**: $O(V)$ for vocabulary logits
+- **Top-k auxiliary**: $O(k)$ for storing top-k values and indices
+- **Top-p auxiliary**: $O(V)$ for sorted logits and indices
+- **Probability storage**: $O(V)$ for softmax probabilities
+- **Cumulative storage**: $O(V)$ for cumulative probabilities
+- **Total additional space**: $O(V)$ (dominated by sorting operations)
+
+**Comparison with Other Strategies:**
+
+- **Top-k/Top-p**: $O(V \log V)$ time, $O(V)$ space
+- **Greedy**: $O(V)$ time, $O(V)$ space
+- **Temperature**: $O(V)$ time, $O(V)$ space
+- **Repetition penalty**: $O(S \log S)$ time, $O(U)$ space where $U$ is unique tokens
+
+### Optimization Strategies
+
+**Efficient Top-k Implementation:**
+
+```python
+def optimized_top_k(logits, k):
+    """Optimized top-k with minimal memory usage."""
+    # Use torch.topk for efficient implementation
+    values, indices = torch.topk(logits, k, dim=-1)
+    # Create mask efficiently
+    mask = torch.zeros_like(logits, dtype=torch.bool)
+    mask.scatter_(dim=-1, index=indices, src=torch.ones_like(indices, dtype=torch.bool))
+    return logits.masked_fill(~mask, -float('inf'))
+```
+
+**Memory-Efficient Top-p:**
+
+```python
+def memory_efficient_top_p(logits, p):
+    """Memory-efficient top-p implementation."""
+    # Sort in-place to reduce memory usage
+    sorted_logits, sorted_indices = torch.sort(logits, dim=-1, descending=True)
+    probs = torch.softmax(sorted_logits, dim=-1)
+    cumulative_probs = torch.cumsum(probs, dim=-1)
+
+    # Find cutoff point
+    cutoff = torch.sum(cumulative_probs < p, dim=-1, keepdim=True)
+    mask = torch.arange(sorted_logits.size(-1), device=logits.device) < cutoff
+
+    # Apply mask and restore order
+    sorted_logits[~mask] = -float('inf')
+    logits.scatter_(dim=-1, index=sorted_indices, src=sorted_logits)
+    return logits
+```
+
+### Performance Considerations
+
+**Parameter Impact:**
+
+- **Small k values**: Faster top-k filtering, less diversity
+- **Large k values**: Slower filtering, more diversity
+- **Low p values**: Faster top-p (fewer tokens to process)
+- **High p values**: Slower top-p (more tokens to process)
+
+**Practical Guidelines:**
+
+- **Top-k**: Use when you need predictable token count
+- **Top-p**: Use when you need adaptive filtering
+- **Combined**: Apply top-k first, then top-p for best performance
+- **Memory**: Top-p uses more memory due to sorting operations

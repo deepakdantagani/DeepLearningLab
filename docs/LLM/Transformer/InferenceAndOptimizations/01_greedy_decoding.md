@@ -312,6 +312,57 @@ def temperature_greedy(logits, temperature=1.0):
 
 ---
 
+## Time and Space Complexity
+
+### Time Complexity
+
+**Per Generation Step:**
+
+- **Model forward pass**: $O(S \cdot H^2)$ where $S$ is sequence length, $H$ is hidden size
+- **Logits extraction**: $O(V)$ where $V$ is vocabulary size
+- **Argmax operation**: $O(V)$ for finding maximum logit
+- **Token selection**: $O(1)$ for selecting the token
+- **Overall per step**: $O(S \cdot H^2 + V)$
+
+**Full Generation:**
+
+- **Total complexity**: $O(L \cdot (S \cdot H^2 + V))$ where $L$ is generation length
+- **With KV caching**: $O(L \cdot H^2 + L \cdot V)$ (significant improvement)
+- **Worst case**: $O(L \cdot S \cdot H^2)$ when no caching is used
+- **Best case**: $O(L \cdot H^2)$ with optimal caching
+
+### Space Complexity
+
+**Memory Usage:**
+
+- **Model parameters**: $O(H^2)$ for attention layers
+- **KV cache**: $O(S \cdot H)$ for storing key-value pairs
+- **Logits storage**: $O(V)$ for vocabulary logits
+- **Generated sequence**: $O(L)$ for output tokens
+- **Total space**: $O(H^2 + S \cdot H + V + L)$
+
+**Comparison with Other Strategies:**
+
+- **Greedy**: $O(L \cdot H^2)$ time, $O(S \cdot H + V)$ space
+- **Beam search**: $O(L \cdot B \cdot H^2)$ time, $O(B \cdot S \cdot H + V)$ space
+- **Sampling**: $O(L \cdot H^2 + L \cdot V)$ time, $O(S \cdot H + V)$ space
+
+### Optimization Impact
+
+**KV Caching Benefits:**
+
+- **Time reduction**: From $O(S \cdot H^2)$ to $O(H^2)$ per step
+- **Memory trade-off**: Additional $O(S \cdot H)$ space for caching
+- **Practical impact**: 10-100x speedup for long sequences
+
+**Batch Processing:**
+
+- **Time scaling**: Linear with batch size $B$
+- **Memory scaling**: Linear with batch size $B$
+- **Efficiency**: Optimal when $B \cdot H^2 \ll S \cdot H^2$
+
+---
+
 ## Summary
 
 Greedy decoding is the **simplest and fastest** decoding strategy, making it ideal for:

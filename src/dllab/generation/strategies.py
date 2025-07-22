@@ -1,3 +1,5 @@
+"""Sampling strategies for text generation."""
+
 from __future__ import annotations
 
 import torch
@@ -29,5 +31,13 @@ class TemperatureSampling(SamplingStrategy):
 
     def sample(self, logits: Tensor) -> Tensor:  # [B, V]
         logits = logits / self.temperature
+        probs = torch.softmax(logits, dim=-1)
+        return torch.multinomial(probs, num_samples=1)  # cspell:ignore multinomial
+
+
+class MultinomialSampling(SamplingStrategy):
+    """Multinomial sampling strategy: sample from the probability distribution."""
+
+    def sample(self, logits: Tensor) -> Tensor:
         probs = torch.softmax(logits, dim=-1)
         return torch.multinomial(probs, num_samples=1)  # cspell:ignore multinomial

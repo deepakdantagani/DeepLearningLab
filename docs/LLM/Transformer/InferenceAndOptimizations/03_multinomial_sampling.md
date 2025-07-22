@@ -398,3 +398,117 @@ However, its **stochastic nature** requires careful tuning and safety measures:
 - **Safety checks** to maintain output quality
 
 When properly implemented, multinomial sampling can produce human-like, engaging, and diverse text that goes beyond the limitations of deterministic greedy decoding.
+
+---
+
+## Time and Space Complexity
+
+### Time Complexity
+
+**Per Generation Step:**
+
+**Basic Multinomial Sampling:**
+
+- **Temperature scaling**: $O(V)$ where $V$ is vocabulary size
+- **Softmax computation**: $O(V)$ for probability calculation
+- **Multinomial sampling**: $O(V)$ for sampling from distribution
+- **Overall per step**: $O(V)$
+
+**With Filtering (Top-k/Top-p):**
+
+- **Top-k filtering**: $O(V \log k)$ additional time
+- **Top-p filtering**: $O(V \log V)$ additional time
+- **Combined with sampling**: $O(V \log V)$ (dominated by sorting)
+
+**Full Generation:**
+
+- **Total complexity**: $O(L \cdot V \log V)$ where $L$ is generation length
+- **With model inference**: $O(L \cdot (S \cdot H^2 + V \log V))$ where $S$ is sequence length, $H$ is hidden size
+- **Worst case**: $O(L \cdot V \log V)$ when filtering dominates
+- **Best case**: $O(L \cdot V)$ for pure multinomial sampling
+
+### Space Complexity
+
+**Memory Usage:**
+
+- **Logits storage**: $O(V)$ for vocabulary logits
+- **Probability storage**: $O(V)$ for softmax probabilities
+- **Temperature scaling**: $O(1)$ additional space (in-place)
+- **Filtering auxiliary**: $O(V)$ for sorting and masking operations
+- **Total additional space**: $O(V)$
+
+**Comparison with Other Strategies:**
+
+- **Multinomial**: $O(V \log V)$ time, $O(V)$ space
+- **Greedy**: $O(V)$ time, $O(V)$ space
+- **Top-k/Top-p**: $O(V \log V)$ time, $O(V)$ space
+- **Repetition penalty**: $O(S \log S)$ time, $O(U)$ space where $U$ is unique tokens
+
+### Optimization Strategies
+
+**Efficient Multinomial Sampling:**
+
+```python
+def optimized_multinomial_sampling(logits, temperature=1.0):
+    """Optimized multinomial sampling with minimal memory usage."""
+    # In-place temperature scaling
+    logits = logits / temperature
+
+    # Efficient softmax computation
+    probs = torch.softmax(logits, dim=-1)
+
+    # Use torch.multinomial for efficient sampling
+    return torch.multinomial(probs, num_samples=1)
+```
+
+**Memory-Efficient Hybrid Sampling:**
+
+```python
+def memory_efficient_hybrid(logits, temperature=1.0, top_k=50, top_p=0.9):
+    """Memory-efficient hybrid sampling with filtering."""
+    # Apply top-k first (more memory efficient)
+    if top_k > 0:
+        top_k_logits, _ = torch.topk(logits, top_k, dim=-1)
+        logits = torch.where(logits < top_k_logits[..., -1, None],
+                           -float('inf'), logits)
+
+    # Apply top-p filtering
+    if 0 < top_p < 1:
+        sorted_logits, sorted_indices = torch.sort(logits, dim=-1, descending=True)
+        probs = torch.softmax(logits, dim=-1)
+        cumulative_probs = probs.cumsum(dim=-1)
+
+        # Find cutoff efficiently
+        mask = cumulative_probs > top_p
+        mask[..., 1:] = mask[..., :-1].clone()
+        sorted_logits[mask] = -float('inf')
+
+        # Restore order in-place
+        logits.scatter_(dim=-1, index=sorted_indices, src=sorted_logits)
+
+    # Apply temperature and sample
+    logits = logits / temperature
+    probs = torch.softmax(logits, dim=-1)
+    return torch.multinomial(probs, num_samples=1)
+```
+
+### Performance Considerations
+
+**Temperature Impact:**
+
+- **Low temperature**: Faster convergence, less diversity
+- **High temperature**: Slower convergence, more diversity
+- **Optimal range**: 0.7-1.5 for most applications
+
+**Filtering Impact:**
+
+- **Top-k**: Predictable performance, fixed token count
+- **Top-p**: Adaptive performance, variable token count
+- **Combined**: Best of both worlds, but higher computational cost
+
+**Practical Guidelines:**
+
+- **Pure sampling**: Use for maximum diversity
+- **With filtering**: Use for controlled diversity
+- **Memory**: Filtering operations require additional $O(V)$ space
+- **Speed**: Pure sampling is fastest, filtering adds overhead

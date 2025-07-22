@@ -84,7 +84,8 @@ Convert to:
 4. **Examples** - Numeric examples with tables
 5. **Comparison** - Side-by-side analysis
 6. **Implementation** - Code examples
-7. **FAQ** - Common questions
+7. **Time and Space Complexity** - Computational analysis
+8. **FAQ** - Common questions
 
 #### Formatting Standards
 
@@ -103,6 +104,7 @@ Convert to:
 - Key implementation points
 - Performance considerations
 - Common pitfalls
+- Time and space complexity analysis
 
 #### Code Formatting
 
@@ -115,7 +117,63 @@ def example_function():
     return result
 ```
 
-### 7. **Update or Create Files**
+### 7. **Add Time and Space Complexity Analysis**
+
+#### Required Complexity Sections
+
+**Time Complexity:**
+
+- **Per operation breakdown**: Analyze each step of the algorithm
+- **Overall complexity**: Total complexity for complete execution
+- **Best/Worst case**: Different scenarios and their impact
+- **Comparison**: How it relates to other operations
+
+**Space Complexity:**
+
+- **Memory usage**: Additional space required beyond input
+- **In-place vs. auxiliary**: Whether the algorithm modifies input or uses extra space
+- **Scaling factors**: How memory usage grows with input size
+
+#### Complexity Analysis Format
+
+```markdown
+### Time and Space Complexity
+
+#### Time Complexity
+
+**Per Operation:**
+- **Step 1**: $O(n)$ - Description
+- **Step 2**: $O(n \log n)$ - Description
+- **Overall**: $O(n \log n)$ - Combined complexity
+
+**Full Execution:**
+- **Total complexity**: $O(m \cdot n \log n)$ where $m$ is iterations
+- **Worst case**: $O(n^2)$ - When condition X occurs
+- **Best case**: $O(n)$ - When condition Y occurs
+
+#### Space Complexity
+
+**Memory Usage:**
+- **Auxiliary space**: $O(n)$ for storing intermediate results
+- **In-place modification**: $O(1)$ additional space
+- **Total space**: $O(n)$ including input storage
+
+**Comparison with Related Operations:**
+- **Model inference**: $O(S \cdot H^2)$ time, $O(S \cdot H)$ space
+- **This operation**: $O(n \log n)$ time, $O(n)$ space
+- **Overhead**: Negligible compared to model computation
+```
+
+#### Complexity Analysis Guidelines
+
+1. **Use Big O notation**: Always specify the complexity class
+2. **Break down steps**: Analyze each component separately
+3. **Consider variables**: Define what $n$, $m$, etc. represent
+4. **Compare with alternatives**: Show relative performance
+5. **Include edge cases**: Best and worst case scenarios
+6. **Provide context**: How it relates to overall system performance
+
+### 8. **Update or Create Files**
 
 #### If Content Exists
 
@@ -130,7 +188,7 @@ def example_function():
 - Follow existing naming conventions
 - Add to appropriate directory
 
-### 8. **Cross-Reference Related Content**
+### 9. **Cross-Reference Related Content**
 
 #### Link to
 
@@ -285,6 +343,7 @@ Output: Proper code blocks with syntax highlighting
 - [ ] Tables properly formatted
 - [ ] Code examples included
 - [ ] Implementation details added
+- [ ] Time and space complexity analysis included
 - [ ] Cross-references added
 - [ ] Consistent formatting
 - [ ] Proper file organization
@@ -300,6 +359,7 @@ Output: Proper code blocks with syntax highlighting
 - [ ] Proper links and references
 - [ ] Follow naming conventions
 - [ ] Maintain logical sequence
+- [ ] Include complexity analysis
 
 ## Example Workflow
 
@@ -329,20 +389,22 @@ Output: Proper code blocks with syntax highlighting
 4. **Cross-reference related content** - Build connections
 5. **Follow existing formatting** - Maintain consistency
 6. **Add implementation details** - Make it practical
-7. **Update table of contents** - Keep navigation current
-8. **Follow sequencing rules** - Maintain logical organization
-9. **Use descriptive names** - Make files easy to find
-10. **Update index files** - Keep documentation navigable
+7. **Include complexity analysis** - Time and space complexity
+8. **Update table of contents** - Keep navigation current
+9. **Follow sequencing rules** - Maintain logical organization
+10. **Use descriptive names** - Make files easy to find
+11. **Update index files** - Keep documentation navigable
 
 ## Common Pitfalls to Avoid
 
 1. **Duplicating existing content** - Always check first
 2. **Inconsistent math notation** - Use LaTeX consistently
 3. **Missing implementation details** - Include practical code
-4. **Poor table formatting** - Use proper Markdown tables
-5. **Incomplete conversions** - Convert all visual elements
-6. **Missing cross-references** - Link to related content
-7. **Wrong file sequence** - Check existing numbering
-8. **Poor naming conventions** - Use descriptive, consistent names
-9. **Missing index updates** - Keep navigation current
-10. **Ignoring dependencies** - Consider logical progression
+4. **Missing complexity analysis** - Always include time/space complexity
+5. **Poor table formatting** - Use proper Markdown tables
+6. **Incomplete conversions** - Convert all visual elements
+7. **Missing cross-references** - Link to related content
+8. **Wrong file sequence** - Check existing numbering
+9. **Poor naming conventions** - Use descriptive, consistent names
+10. **Missing index updates** - Keep navigation current
+11. **Ignoring dependencies** - Consider logical progression
