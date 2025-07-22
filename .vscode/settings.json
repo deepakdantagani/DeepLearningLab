@@ -77,5 +77,8 @@
         "**/.pytest_cache": true,
         "**/.coverage": true,
         "**/.mypy_cache": true
-    }
+    },
+    "cSpell.words": [
+        "dllab"
+    ]
 }
