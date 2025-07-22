@@ -125,7 +125,7 @@ def text_generation_simulation() -> None:
         sample = torch.multinomial(probs, num_samples=1)
         token_id = sample.item()
         sequence.append(token_id)
-        print(f"Step {i+1}: Selected token {token_id} (prob: {probs[token_id]:.3f})")
+        print(f"Step {i+1}: Selected token {token_id} (prob: {probs[sample]:.3f})")
 
     print(f"Generated sequence: {sequence}")
     print()
