@@ -1,4 +1,4 @@
-"""Logits processors for text generation decoding strategies."""
+"""Logits processors for text generation strategies."""
 
 from __future__ import annotations
 
@@ -11,6 +11,18 @@ from transformers import PreTrainedModel
 from dllab.generation.filters import top_k_top_p_filtering
 
 from .base import LogitsProcessor, SamplingStrategy
+
+
+class TemperatureLogitsProcessor(LogitsProcessor):
+    """Apply temperature scaling to logits for controlled randomness."""
+
+    def __init__(self, temperature: float = 1.0) -> None:
+        if temperature <= 0:
+            raise ValueError("temperature must be > 0")
+        self.temperature = temperature
+
+    def __call__(self, logits: Tensor, _: Tensor) -> Tensor:
+        return logits / self.temperature
 
 
 class RepetitionPenalty(LogitsProcessor):
@@ -39,8 +51,8 @@ class TopKTopP(LogitsProcessor):
         return top_k_top_p_filtering(logits, self.k, self.p)
 
 
-class Decoder:
-    """Main decoder class for text generation with configurable sampling strategies."""
+class Generator:
+    """Main generator class for text generation with configurable sampling strategies."""
 
     def __init__(
         self,
@@ -48,7 +60,7 @@ class Decoder:
         strategy: SamplingStrategy,
         logits_processors: Optional[List[LogitsProcessor]] = None,
     ) -> None:
-        """Initialize the decoder with model, sampling strategy, and optional logits processors."""
+        """Initialize the generator with model, sampling strategy, and optional logits processors."""
         self.model = model
         self.strategy = strategy
         self.processors = logits_processors or []
@@ -62,9 +74,11 @@ class Decoder:
         for _ in range(max_new_tokens):
             logits = self.model(generated).logits[:, -1, :]
 
+            # Apply logits processors first (temperature, top-k, top-p, etc.)
             for process in self.processors:
                 logits = process(logits, generated)
 
+            # Then apply sampling strategy
             next_token = self.strategy.sample(logits)
             generated = torch.cat([generated, next_token], dim=-1)
 

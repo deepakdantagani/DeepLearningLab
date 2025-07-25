@@ -1,5 +1,5 @@
 """
-Abstract base interfaces for decoding components.
+Abstract base interfaces for generation components.
 """
 
 from __future__ import annotations
