@@ -30,5 +30,11 @@ jupyter = "^1.1.1"
 jupytext = "^1.17.2"
 
 [tool.flake8]
-max-line-length = 200
+max-line-length = 1000
 extend-ignore = ["E203", "W503"]
+
+[tool.black]
+line-length = 1000
+
+[tool.ruff]
+line-length = 1000
