@@ -65,3 +65,52 @@ print(result)  # tensor([10, 20,  3,  4])
   - `x`, `y`: same shape as `condition` (or broadcastable)
 - **Output:**
   - Same shape as `condition`, with elements from `x` where `condition` is true, else from `y`.
+
+---
+
+## 4. What are `torch.squeeze` and `torch.unsqueeze`?
+
+**Definitions:**
+- `torch.unsqueeze(t, dim)` adds a new dimension of size 1 at index `dim`.
+- `torch.squeeze(t, dim=None)` removes dimensions of size 1. If `dim` is given, removes that dimension only if its size is 1.
+
+**Why they matter:**
+- Shape alignment for broadcasting (e.g., preparing `[seq, d]` to multiply with `[batch, seq, heads, d]`).
+- Adding batch or channel dimensions.
+- Cleaning up extra singleton dimensions after ops.
+
+**Syntax:**
+```python
+out = t.unsqueeze(dim)
+out = torch.unsqueeze(t, dim)
+
+out = t.squeeze()        # remove all size-1 dims
+out = t.squeeze(dim)     # remove that dim if size-1
+```
+
+**Examples:**
+```python
+import torch
+
+# 1) Unsqueeze: add dimensions
+x = torch.tensor([1, 2, 3])      # [3]
+x0 = x.unsqueeze(0)              # [1, 3]
+x1 = x.unsqueeze(1)              # [3, 1]
+x_last = x.unsqueeze(-1)         # [3, 1]
+
+# 2) Squeeze: remove size-1 dimensions
+y = torch.randn(1, 3, 1, 5)      # [1, 3, 1, 5]
+y_all = y.squeeze()              # [3, 5]
+y_keep = y.squeeze(0)            # [3, 1, 5]
+y_try = y.squeeze(2)             # [1, 3, 5] (dim 2 removed)
+
+# 3) Broadcasting prep (common pattern)
+cos = torch.randn(10, 8)         # [seq=10, d=8]
+cos_b = cos.unsqueeze(0).unsqueeze(2)  # [1, 10, 1, 8]
+x = torch.randn(4, 10, 2, 8)     # [batch=4, seq=10, heads=2, d=8]
+z = x * cos_b                    # broadcasted elementwise multiply → [4, 10, 2, 8]
+```
+
+**Tips:**
+- Use negative indices: `unsqueeze(-1)` adds a trailing dimension; `unsqueeze(-2)` adds before last.
+- `squeeze` will not remove non-1 dimensions; specify `dim` to be explicit.
